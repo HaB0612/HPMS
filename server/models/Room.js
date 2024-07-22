@@ -13,13 +13,6 @@ const roomTypeSchema = new mongoose.Schema({
 const roomSchema = new mongoose.Schema({
   roomType: { type: roomTypeSchema, required: true },
   roomNumber: { type: Number },
-  customer: { type: Schema.Types.ObjectId, ref: "Customer", required: false },
-  isReserved: { type: Boolean, required: false, default: false },
-  reservation: [{
-    type: Schema.Types.ObjectId,
-    ref: "Reservation",
-    required: false,
-  }],
   note: { type: String, required: false },
 });
 

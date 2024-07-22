@@ -8,6 +8,7 @@ var mongoose = require("mongoose");
 const MongoStore = require("connect-mongo");
 const session = require("express-session")
 const fs = require("fs");
+require('dotenv').config()
 
 const mongoURI = process.env.MONGO_URI;
 

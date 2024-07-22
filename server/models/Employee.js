@@ -19,5 +19,5 @@ const employeeSchema = new mongoose.Schema({
   note: { type: String, required: false },
   dob: { type: String },
 });
-
+    
 module.exports = mongoose.model("Employee", employeeSchema);

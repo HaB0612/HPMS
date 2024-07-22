@@ -107,30 +107,39 @@ const reservationValidator = {
       )
         return "Lütfen tarihleri (YYYY-MM-DD) formatında girin ve giriş tarihinin çıkış tarihinin sonrası olmamasına dikkat edin.";
       let room = [];
-      if (!reservationID && rooms) {
+      if (!reservationID && rooms && Array.isArray(rooms)) {
+        if (!Reservation.find({ rooms: { $in: rooms } })) return false;
         room = rooms;
-      } else {
-        room.push(await Room.findOne({ reservation: reservationID }));
-      }
-      if (!mongoose.model("Reservation").find({ rooms: room })) return false;
-      if (!mongoose.model("Reservation").find({ reservation: reservationID }))
-        return false;
-      const conflictingReservations = await mongoose.model("Reservation").find({
-        rooms: room,
-        customers: customers,
+      } else if (reservationID && !rooms) {
+        if (!Reservation.find({ reservation: reservationID })) return false;
+        let reservationObject = await Reservation.findOne({
+          _id: reservationID,
+        }).exec();
+        room = reservationObject.rooms;
+      } else return "Lütfen bir oda veya rezervasyon id girin.";
+      const conflictingReservations = await Reservation.find({
         $or: [
           {
-            checkin: { $gte: checkinDate, $lt: checkoutDate },
+            rooms: { $in: room },
           },
           {
-            checkin: { $gte: checkinDate },
-            checkout: { $lt: checkoutDate },
+            customers: { $in: customers },
           },
+        ],
+        $and: [
           {
-            checkout: { $gt: checkinDate, $lt: checkoutDate },
-          },
-          {
-            checkout: { $eq: checkoutDate },
+            $or: [
+              {
+                checkin: { $gte: checkinDate, $lt: checkoutDate },
+              },
+              {
+                checkin: { $lt: checkinDate },
+                checkout: { $gt: checkinDate },
+              },
+              {
+                checkout: { $gt: checkinDate, $lte: checkoutDate },
+              },
+            ],
           },
         ],
       });

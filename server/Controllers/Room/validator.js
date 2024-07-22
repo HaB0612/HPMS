@@ -9,22 +9,6 @@ function isValidObjectId(id) {
 
 /** @namespace */
 const roomValidator = {
-  /** Müşterilerin varlığını kontrol eder.
-   * @function customer
-   * @memberof roomValidator
-   * @param {array} customerID - Veritabanı müşteri ID'leri
-   */
-  customer: async (customerID) => {
-    const isValid =
-      !customerID ||
-      !isValidObjectId(customerID) ||
-      !(await Customer.findById(customerID));
-    return validateField(
-      customerID,
-      isValid,
-      "Lütfen geçerli bir müşteri seçin."
-    );
-  },
   /** Oda numarasını kontrol eder.
    * @function roomNumber
    * @memberof roomValidator

@@ -4,10 +4,18 @@ const Room = require("../../models/Room");
 const Employee = require("../../models/Employee");
 const mongoose = require("mongoose");
 const validator = require("./validator");
-
-//BURANIN ALAYI DEĞİŞECEK
+const logEntry = require("../Middleware/logger");
 
 const createReservation = async (req, res) => {
+  const employee = req.user ? req.user._id : "";
+
+  const requestDetails = {
+    method: req.method,
+    url: req.originalUrl,
+    headers: req.headers,
+    body: req.body,
+  };
+
   try {
     const {
       customers,
@@ -21,35 +29,46 @@ const createReservation = async (req, res) => {
       note,
     } = req.body;
 
-    const errors = {
-      //employee: await validator.employee(req.user._id),
-      // customer: await validator.customer(customers),
-      // room: await validator.room(rooms),
-      checkDates: await validator.checkDates(
+    const validators = {
+      customer: validator.customer(customers),
+      room: validator.room(rooms),
+      checkDates: validator.checkDates(
         checkin,
         checkout,
         null,
         rooms,
         customers
       ),
-      adults: await validator.adults(adults),
-      childs: await validator.childs(childs),
-      price: await validator.price(price),
-      isPaid: await validator.isPaid(isPaid),
+      adults: validator.adults(adults),
+      childs: validator.childs(childs),
+      price: validator.price(price),
+      isPaid: validator.isPaid(isPaid),
     };
-    const errorsArray = [];
-    Object.keys(errors).forEach(function (key, index) {
-      if (!errors[key]) return;
-      errorsArray.push(errors[key]);
-    });
 
-    if (errorsArray.length > 0)
+    const errors = await Promise.all(Object.values(validators));
+    const errorsArray = Object.keys(validators).reduce((arr, key, index) => {
+      if (errors[index]) arr.push(errors[index]);
+      return arr;
+    }, []);
+
+    if (errorsArray.length > 0) {
+      await logEntry({
+        message:
+          "Rezervasyon oluşturulurken hatalı veri girildi ve işlem yapılamadı.",
+        employee,
+        request: requestDetails,
+        response: {
+          status: 400,
+          headers: res.getHeaders(),
+          body: { error: true, message: "errors", data: errorsArray },
+        },
+      });
       return res
         .status(400)
         .json({ error: true, message: "errors", data: errorsArray });
-
+    }
     const newReservation = await Reservation.create({
-      employee: "66990c80a434f85a8aae7c73",
+      employee: "669e5fe5af7fd9bf9444cce4",
       customers,
       rooms,
       checkin,
@@ -60,31 +79,33 @@ const createReservation = async (req, res) => {
       isPaid,
       note: note || "",
     });
-
-    await Promise.all([
-      customers.forEach(async (customer) => {
-        await Customer.findByIdAndUpdate(
-          customer,
-          { $addToSet: { reservation: newReservation._id } },
-          { new: true }
-        ); 
-      }),
-      rooms.forEach(async (room) => {
-        await Room.findByIdAndUpdate(
-          room,
-          { $addToSet: { reservation: newReservation._id } },
-          { new: true }
-        );
-      }),
-    ]);
-    res.status(201).json({
-      error: false,
-      data: newReservation,
-      message: "success",
+    await logEntry({
+      message: "Yeni bir rezervasyon oluşturuldu.",
+      employee,
+      request: requestDetails,
+      response: {
+        status: 201,
+        headers: res.getHeaders(),
+        body: { error: false, data: newReservation, message: "success" },
+      },
     });
+    res
+      .status(201)
+      .json({ error: false, data: newReservation, message: "success" });
   } catch (error) {
+    await logEntry({
+      message: "İşlem sırasında hata oluştu.",
+      level: "error",
+      employee,
+      request: requestDetails,
+      response: {
+        status: 500,
+        headers: res.getHeaders(),
+        body: { error: true, message: "error", data: error },
+      },
+      error: { name: error.name, message: error.message, stack: error.stack },
+    });
     res.status(500).json({ error: true, message: "error", data: error });
-    console.log(error);
   }
 };
 
