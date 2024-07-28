@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const contactSchema = new mongoose.Schema({
-  tckn: { type: String, unique: true },
+  tckn: { type: String },
   phone: { type: Number },
   email: { type: String, unique: true },
   address: { type: String },
@@ -10,7 +10,6 @@ const contactSchema = new mongoose.Schema({
 
 const employeeSchema = new mongoose.Schema({
   name: { type: String },
-  surname: { type: String },
   job: { type: String },
   salary: { type: Number },
   jobStartDate: { type: String },

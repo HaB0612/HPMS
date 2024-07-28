@@ -3,14 +3,12 @@ const Schema = mongoose.Schema;
 
 const customerSchema = new mongoose.Schema({
   name: { type: String },
-  surname: { type: String },
-  tckn: { type: String, unique: true },
+  tckn: { type: String},
   address: { type: String },
-  email: { type: String, unique: true },
+  email: { type: String},
   gender: { type: String },
   phone: { type: Number },
   nation: { type: String },
-  currency: { type: String },
   note: { type: String, required: false },
 });
 

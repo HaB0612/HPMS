@@ -24,8 +24,8 @@ const getAllRooms = async (req, res) => {
             });
             return res.status(400).json(responseBody);
         }
-        const room = await Room.find({});
-        responseBody = { error: false, message: "success", data: room }
+        const rooms = await Room.find({});
+        responseBody = { error: false, message: "success", data: rooms }
 
         await logEntry({
             message: "Bütün odalar gösterildi.",

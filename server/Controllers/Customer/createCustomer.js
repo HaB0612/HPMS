@@ -1,24 +1,23 @@
-const Room = require("../../models/Room");
-const validator = require("./validator");
+const Customer = require("../../models/Customer");
+const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
 
-const createRoom = async (req, res) => {
+const createCustomer = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
     let responseBody;
 
     try {
-        const { roomNumber, roomName, price, description, adults, childs, features, note } = req.body;
+        const { name, tckn, address, email, gender, phone, nation, note } = req.body;
         const validators = [
-            validator.employee(employee),
-            validator.roomNumber(roomNumber, null),
-            validator.roomName(roomName),
-            validator.price(price),
-            validator.description(description),
-            validator.adults(adults),
-            validator.features(features),
-            validator.childs(childs)
+            validator.name(name),
+            validator.tckn(tckn),
+            validator.address(address),
+            validator.email(email),
+            validator.gender(gender),
+            validator.phone(phone),
+            validator.nation(nation)
         ];
         const errors = await Promise.all(validators);
         const errorsArray = errors.filter(Boolean);
@@ -27,17 +26,18 @@ const createRoom = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Oda oluşturulurken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Müşteri oluşturulurken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        const newRoom = await Room.create({ roomNumber, note: note || "", roomType: { roomName, price, adults, childs, features, note: note || "" } });
-        responseBody = { error: false, data: newRoom, message: "success" }
+        const newCustomer = await Customer.create({ name, tckn, address, email, gender, phone, nation, note: note || "" });
+        responseBody = { error: false, data: newCustomer, message: "success" }
+
         await logEntry({
-            message: "Yeni bir oda oluşturuldu.",
+            message: "Yeni bir müşteri oluşturuldu.",
             employee,
             request: requestDetails,
             response: { status: 201, headers: res.getHeaders(), body: responseBody }
@@ -47,7 +47,7 @@ const createRoom = async (req, res) => {
         responseBody = { error: true, message: "error", data: error },
         
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Oda oluşturulamadı.",
+            message: "İşlem sırasında hata oluştu. Müşteri oluşturulamadı.",
             level: "error",
             employee,
             request: requestDetails,
@@ -58,4 +58,4 @@ const createRoom = async (req, res) => {
     }
 };
 
-module.exports = createRoom;
+module.exports = createCustomer;

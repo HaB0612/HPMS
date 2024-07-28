@@ -1,8 +1,8 @@
-const Reservation = require("../../models/Reservation");
-const validator = require("./validator");
+const Customer = require("../../models/Customer");
+const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
 
-const getAllReservations = async (req, res) => {
+const getAllCustomers = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
@@ -17,18 +17,18 @@ const getAllReservations = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Bütün rezervasyonlar gösterilirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Bütün müşteriler gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        const reservations = await Reservation.find({});
-        responseBody = { error: false, message: "success", data: reservations }
+        const customers = await Customer.find({});
+        responseBody = { error: false, message: "success", data: customers }
 
         await logEntry({
-            message: "Bütün rezervasyonlar gösterildi.",
+            message: "Bütün müşteriler gösterildi.",
             employee,
             request: requestDetails,
             response: { status: 200, headers: res.getHeaders(), body: responseBody }
@@ -38,7 +38,7 @@ const getAllReservations = async (req, res) => {
         responseBody = { error: true, message: "error", data: error };
 
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Bütün rezervasyon gösterilemedi.",
+            message: "İşlem sırasında hata oluştu. Bütün müşteriler gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -49,4 +49,4 @@ const getAllReservations = async (req, res) => {
     }
 };
 
-module.exports = getAllReservations;
+module.exports = getAllCustomers;

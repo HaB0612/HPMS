@@ -20,20 +20,19 @@ const validateField = async (value, condition, errorMessage) => {
 };
 
 const validators = {
+  employee: async (employee) => validateField(employee, async v => !v || !isValidObjectId(v) || !await Employee.findById(v), "Lütfen geçerli bir kimlikle giriş yapın."),
   name: async (name) => validateField(name, v => !v, "Lütfen bir isim girin."),
-  surname: async (surname) => validateField(surname, v => !v, "Lütfen bir soyisim girin."),
   tckn: async (tckn) => validateField(tckn, v => !v, "Lütfen bir TCKN veya Pasaport No girin."),
   phone: async (phone) => validateField(phone, v => !v || !phoneRegex.test(v), "Lütfen geçerli bir telefon numarası girin."),
   email: async (email) => validateField(email, v => !v || !emailRegex.test(v), "Lütfen geçerli bir email adresi girin."),
-  dob: async (dob) => validateField(dob, v => !v || !dateRegex.test(v) || isNaN(new Date(v).getTime()), "Lütfen (YYYY-MM-DD) formatında bir doğum tarihi girin."),
+  dob: async (dob) => validateField(dob, v => !v || !dateRegex.test(v) || isNaN(new Date(v).getTime()), "Lütfen (YYYY-MM-DD) formatında bir doğum tarihi girin."),
   gender: async (gender) => validateField(gender, v => !v, "Lütfen bir cinsiyet girin."),
   address: async (address) => validateField(address, v => !v, "Lütfen bir adres girin."),
   nation: async (nation) => validateField(nation, v => !v, "Lütfen bir uyruk girin."),
-  currency: async (currency) => validateField(currency, v => !v || !Object.keys(currenciesData).includes(currency.toUpperCase()), "Lütfen geçerli bir para birimi girin."),
   username: async (username) => validateField(username, v => !v, "Lütfen bir isim girin."),
   job: async (job) => validateField(job, v => !v, "Lütfen bir iş girin."),
   salary: async (salary) => validateField(salary, v => !v || !Number.isInteger(v), "Lütfen rakam kullanarak maaş girin."),
-  jobStartDate: async (jobStartDate) => validateField(jobStartDate, v => !v || !dateRegex.test(v) || isNaN(new Date(v).getTime()), "Lütfen iş başlama tarihini (YYYY-MM-DD) formatında girin."),
+  jobStartDate: async (jobStartDate) => validateField(jobStartDate, v => !v || !dateRegex.test(v) || isNaN(new Date(v).getTime()), "Lütfen iş başlama tarihini (YYYY-MM-DD) formatında girin."),
   jobDescription: async (jobDescription) => validateField(jobDescription, v => !v, "Lütfen bir iş açıklaması girin."),
   contact: async (contact) => validateField(contact, v => !v, "Lütfen bir iletişim bilgisi girin."),
   location: async (location) => validateField(location, v => !v, "Lütfen bir adres girin."),

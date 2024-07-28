@@ -3,7 +3,7 @@ const Log = require("../../models/Log");
 const logEntry = async ({
   message,
   level = "info",
-  user = {},
+  employee = {},
   request = {},
   response = {},
   error = {},
@@ -13,7 +13,7 @@ const logEntry = async ({
     await Log.create({
       message,
       level,
-      user,
+      employee,
       request,
       response,
       error,
