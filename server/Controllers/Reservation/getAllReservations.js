@@ -2,7 +2,7 @@ const Reservation = require("../../models/Reservation");
 const validator = require("./validator");
 const logEntry = require("../Middleware/logger");
 
-const getReservation = async (req, res) => {
+const getAllReservations = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
@@ -43,10 +43,10 @@ const getReservation = async (req, res) => {
             employee,
             request: requestDetails,
             response: { status: 500, headers: res.getHeaders(), body: responseBody },
-            error: { name: error.name, message: error.message, stack: error.stack }
+            error
         });
         return res.status(500).json(responseBody);
     }
 };
 
-module.exports = getReservation;
+module.exports = getAllReservations;

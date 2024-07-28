@@ -17,11 +17,7 @@ const LogSchema = new Schema({
     headers: { type: Schema.Types.Mixed },
     body: { type: Schema.Types.Mixed }
   },
-  error: {
-    name: { type: String },
-    message: { type: String },
-    stack: { type: String }
-  },
+  error: { type: Schema.Types.Mixed },
   additionalInfo: { type: Schema.Types.Mixed }
 });
 

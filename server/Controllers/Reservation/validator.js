@@ -54,6 +54,8 @@ const reservationValidator = {
       if (
         !checkinDate ||
         !checkoutDate ||
+        !dateRegex.test(checkinDate) ||
+        !dateRegex.test(checkoutDate) ||
         new Date(checkinDate).getTime() >= new Date(checkoutDate).getTime() ||
         isNaN(new Date(checkinDate).getTime()) ||
         isNaN(new Date(checkoutDate).getTime())
@@ -84,7 +86,8 @@ const reservationValidator = {
           }
         ]
       });
-      if (conflictingReservations.includes(reservationFromID)) conflictingReservations--
+      const selfExist = conflictingReservations.some(item => _.isEqual(item, reservationFromID))
+      if (selfExist) conflictingReservations--
       if (conflictingReservations.length > 0) return "Seçilen tarihler başka bir rezervasyon ile çakışıyor.";
       return false;
     } catch (error) {
@@ -100,7 +103,7 @@ const reservationValidator = {
     return false;
   },
   price: async (price) => {
-    if (!price || !Number.isInteger(price)) return "Lütfen ücreti rakam kullanarak USD cinsinden girin.";
+    if (!price || !Number.isInteger(price)) return "Lütfen ücreti rakam kullanarak cinsinden girin.";
     return false;
   },
   isPaid: async (isPaid) => {

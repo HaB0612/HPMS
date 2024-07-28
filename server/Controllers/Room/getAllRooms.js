@@ -1,16 +1,15 @@
-const Reservation = require("../../models/Reservation");
+const Room = require("../../models/Room");
 const validator = require("./validator");
 const logEntry = require("../Middleware/logger");
 
-const deleteReservation = async (req, res) => {
+const getAllRooms = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
     let responseBody;
 
     try {
-        const { id } = req.params;
-        const validators = [validator.employee(employee), validator.reservation(id)];
+        const validators = [validator.employee(employee)];
         const errors = await Promise.all(validators);
         const errorsArray = errors.filter(Boolean);
 
@@ -18,18 +17,18 @@ const deleteReservation = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Rezervasyon silinirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Bütün odalar gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        responseBody = { error: false, message: "success" }
+        const room = await Room.find({});
+        responseBody = { error: false, message: "success", data: room }
 
-        await Reservation.findByIdAndDelete(id);
         await logEntry({
-            message: "Rezervasyon silindi.",
+            message: "Bütün odalar gösterildi.",
             employee,
             request: requestDetails,
             response: { status: 200, headers: res.getHeaders(), body: responseBody }
@@ -39,7 +38,7 @@ const deleteReservation = async (req, res) => {
         responseBody = { error: true, message: "error", data: error };
 
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Rezervasyon silinemedi.",
+            message: "İşlem sırasında hata oluştu. Bütün odalar gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -50,4 +49,4 @@ const deleteReservation = async (req, res) => {
     }
 };
 
-module.exports = deleteReservation;
+module.exports = getAllRooms;

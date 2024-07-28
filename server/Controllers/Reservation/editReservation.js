@@ -59,7 +59,7 @@ const editReservation = async (req, res) => {
       employee,
       request: requestDetails,
       response: { status: 500, headers: res.getHeaders(), body: responseBody },
-      error: { name: error.name, message: error.message, stack: error.stack }
+      error
     });
     return res.status(500).json(responseBody);
   }

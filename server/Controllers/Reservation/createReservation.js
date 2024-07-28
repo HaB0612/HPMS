@@ -4,7 +4,7 @@ const logEntry = require("../Middleware/logger");
 
 const createReservation = async (req, res) => {
   const { user } = req;
-  const employee = user ? user._id : "";
+  const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
   const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
   let responseBody;
 
@@ -34,7 +34,7 @@ const createReservation = async (req, res) => {
       });
       return res.status(400).json(responseBody);
     }
-    const newReservation = await Reservation.create({ employee, customers, rooms, checkin, checkout, adults, childs, price, isPaid, note });
+    const newReservation = await Reservation.create({ employee, customers, rooms, checkin, checkout, adults, childs, price, isPaid, note: note || "" });
     responseBody = { error: false, data: newReservation, message: "success" }
 
     await logEntry({
@@ -47,14 +47,14 @@ const createReservation = async (req, res) => {
   } catch (error) {
     responseBody = { error: true, message: "error", data: error },
 
-    await logEntry({
-      message: "İşlem sırasında hata oluştu. Rezervasyon oluşturulamadı.",
-      level: "error",
-      employee,
-      request: requestDetails,
-      response: { status: 500, headers: res.getHeaders(), body: responseBody },
-      error: { name: error.name, message: error.message, stack: error.stack }
-    });
+      await logEntry({
+        message: "İşlem sırasında hata oluştu. Rezervasyon oluşturulamadı.",
+        level: "error",
+        employee,
+        request: requestDetails,
+        response: { status: 500, headers: res.getHeaders(), body: responseBody },
+        error
+      });
     return res.status(500).json(responseBody);
   }
 };
