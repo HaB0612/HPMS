@@ -1,4 +1,5 @@
 const Customer = require("../../models/Customer");
+const Employee = require("../../models/Employee");
 const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
 const mongoose = require("mongoose");
@@ -7,13 +8,12 @@ function isValidObjectId(id) {
     return mongoose.Types.ObjectId.isValid(id);
 }
 
-
 const checkCustomer = async (customerID) => {
     if (!customerID || !isValidObjectId(customerID) || !(await Customer.findById(customerID))) return "Lütfen geçerli bir müşteri seçin.";
     return false;
 }
 
-const deleteCustomer = async (req, res) => {
+const getCustomer = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
@@ -29,18 +29,18 @@ const deleteCustomer = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Müşteri silinirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Müşteri gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        responseBody = { error: false, message: "success" }
+        const customer = await Customer.findById(id);
+        responseBody = { error: false, message: "success", data: customer }
 
-        await Customer.findByIdAndDelete(id);
         await logEntry({
-            message: "Müşteri silindi.",
+            message: "Müşteri gösterildi.",
             employee,
             request: requestDetails,
             response: { status: 200, headers: res.getHeaders(), body: responseBody }
@@ -50,7 +50,7 @@ const deleteCustomer = async (req, res) => {
         responseBody = { error: true, message: "error", data: error };
         
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Müşteri silinemedi.",
+            message: "İşlem sırasında hata oluştu. Müşteri gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -61,4 +61,4 @@ const deleteCustomer = async (req, res) => {
     }
 };
 
-module.exports = deleteCustomer;
+module.exports = getCustomer;

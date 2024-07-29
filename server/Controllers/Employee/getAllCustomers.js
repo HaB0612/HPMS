@@ -1,27 +1,15 @@
 const Customer = require("../../models/Customer");
 const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
-const mongoose = require("mongoose");
 
-function isValidObjectId(id) {
-    return mongoose.Types.ObjectId.isValid(id);
-}
-
-
-const checkCustomer = async (customerID) => {
-    if (!customerID || !isValidObjectId(customerID) || !(await Customer.findById(customerID))) return "Lütfen geçerli bir müşteri seçin.";
-    return false;
-}
-
-const deleteCustomer = async (req, res) => {
+const getAllCustomers = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
     let responseBody;
 
     try {
-        const { id } = req.params;
-        const validators = [validator.employee(employee), checkCustomer(id)];
+        const validators = [validator.employee(employee)];
         const errors = await Promise.all(validators);
         const errorsArray = errors.filter(Boolean);
 
@@ -29,18 +17,18 @@ const deleteCustomer = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Müşteri silinirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Bütün müşteriler gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        responseBody = { error: false, message: "success" }
+        const customers = await Customer.find({});
+        responseBody = { error: false, message: "success", data: customers }
 
-        await Customer.findByIdAndDelete(id);
         await logEntry({
-            message: "Müşteri silindi.",
+            message: "Bütün müşteriler gösterildi.",
             employee,
             request: requestDetails,
             response: { status: 200, headers: res.getHeaders(), body: responseBody }
@@ -48,9 +36,9 @@ const deleteCustomer = async (req, res) => {
         res.status(200).json(responseBody);
     } catch (error) {
         responseBody = { error: true, message: "error", data: error };
-        
+
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Müşteri silinemedi.",
+            message: "İşlem sırasında hata oluştu. Bütün müşteriler gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -61,4 +49,4 @@ const deleteCustomer = async (req, res) => {
     }
 };
 
-module.exports = deleteCustomer;
+module.exports = getAllCustomers;
