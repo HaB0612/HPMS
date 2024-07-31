@@ -8,7 +8,7 @@ function isValidObjectId(id) {
 }
 
 const checkEmployee = async (employeeID) => {
-    if (!employeeID || !isValidObjectId(employeeID) || !(await Employee.findById(employeeID))) return "Lütfen geçerli bir müşteri seçin.";
+    if (!employeeID || !isValidObjectId(employeeID) || !(await Employee.findById(employeeID))) return "Lütfen geçerli bir çalışan seçin.";
     return false;
 }
 
@@ -49,7 +49,7 @@ const deleteEmployee = async (req, res) => {
         res.status(200).json(responseBody);
     } catch (error) {
         responseBody = { error: true, message: "error", data: error };
-        
+
         await logEntry({
             message: "İşlem sırasında hata oluştu. Çalışan silinemedi.",
             level: "error",
@@ -62,4 +62,4 @@ const deleteEmployee = async (req, res) => {
     }
 };
 
-module.exports = deleteCustomer;
+module.exports = deleteEmployee;

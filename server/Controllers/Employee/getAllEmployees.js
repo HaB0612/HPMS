@@ -1,27 +1,15 @@
-const Customer = require("../../models/Customer");
 const Employee = require("../../models/Employee");
 const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
-const mongoose = require("mongoose");
 
-function isValidObjectId(id) {
-    return mongoose.Types.ObjectId.isValid(id);
-}
-
-const checkCustomer = async (customerID) => {
-    if (!customerID || !isValidObjectId(customerID) || !(await Customer.findById(customerID))) return "Lütfen geçerli bir müşteri seçin.";
-    return false;
-}
-
-const getCustomer = async (req, res) => {
+const getAllEmployees = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
     let responseBody;
 
     try {
-        const { id } = req.params;
-        const validators = [validator.employee(employee), checkCustomer(id)];
+        const validators = [async (employeeID) => { if (employeeID !== process.env.MASTEREMPLOYEEID) { return "Çalışan oluşturma yetkiniz yok." } else { return false } },];
         const errors = await Promise.all(validators);
         const errorsArray = errors.filter(Boolean);
 
@@ -29,18 +17,18 @@ const getCustomer = async (req, res) => {
             responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Müşteri gösterilirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Bütün çalışanlar gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        const customer = await Customer.findById(id);
-        responseBody = { error: false, message: "success", data: customer }
+        const employees = await Employee.find({});
+        responseBody = { error: false, message: "success", data: employees }
 
         await logEntry({
-            message: "Müşteri gösterildi.",
+            message: "Bütün çalışanlar gösterildi.",
             employee,
             request: requestDetails,
             response: { status: 200, headers: res.getHeaders(), body: responseBody }
@@ -48,9 +36,9 @@ const getCustomer = async (req, res) => {
         res.status(200).json(responseBody);
     } catch (error) {
         responseBody = { error: true, message: "error", data: error };
-        
+
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Müşteri gösterilemedi.",
+            message: "İşlem sırasında hata oluştu. Bütün çalışanlar gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -61,4 +49,4 @@ const getCustomer = async (req, res) => {
     }
 };
 
-module.exports = getCustomer;
+module.exports = getAllEmployees;

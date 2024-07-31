@@ -1,4 +1,5 @@
 const Customer = require("../../models/Customer");
+const Employee = require("../../models/Employee");
 const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
 const mongoose = require("mongoose");
@@ -7,7 +8,12 @@ function isValidObjectId(id) {
     return mongoose.Types.ObjectId.isValid(id);
 }
 
-const editCustomer = async (req, res) => {
+const checkEmployee = async (employeeID) => {
+    if (!employeeID || !isValidObjectId(employeeID) || !(await Employee.findById(employeeID))) return "Lütfen geçerli bir çalışan seçin.";
+    return false;
+}
+
+const getEmployee = async (req, res) => {
     const { user } = req;
     const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
     const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
@@ -15,50 +21,39 @@ const editCustomer = async (req, res) => {
 
     try {
         const { id } = req.params;
-        const { name, tckn, address, email, gender, phone, nation, note } = req.body;
         const validators = [
-            validator.name(name),
-            validator.tckn(tckn),
-            validator.address(address),
-            validator.email(email),
-            validator.gender(gender),
-            validator.phone(phone),
-            validator.nation(nation),
-            checkCustomer(id)
+            async (employeeID) => { if (employeeID !== process.env.MASTEREMPLOYEEID) { return "Çalışan oluşturma yetkiniz yok." } else { return false } },
+            checkEmployee(id)
         ];
         const errors = await Promise.all(validators);
         const errorsArray = errors.filter(Boolean);
 
         if (errorsArray.length > 0) {
-            responseBody = { error: true, message: "errors", data: errorsArray };
+            responseBody = { error: true, message: "errors", data: errorsArray }
 
             await logEntry({
-                message: "Müşteri düzenlenirken hatalı veri girildi ve işlem yapılamadı.",
+                message: "Çalışan gösterilirken hatalı veri girildi ve işlem yapılamadı.",
                 employee,
                 request: requestDetails,
                 response: { status: 400, headers: res.getHeaders(), body: responseBody }
             });
             return res.status(400).json(responseBody);
         }
-        const newCustomer = await Customer.findByIdAndUpdate(
-            id,
-            { name, tckn, address, email, gender, phone, nation, note: note || "" },
-            { new: true }
-        );
-        responseBody = { error: false, data: newCustomer, message: "success" };
+        const employee = await Employee.findById(id);
+        responseBody = { error: false, message: "success", data: employee }
 
         await logEntry({
-            message: "Bir Müşteri düzenlendi.",
+            message: "Çalışan gösterildi.",
             employee,
             request: requestDetails,
-            response: { status: 201, headers: res.getHeaders(), body: responseBody }
+            response: { status: 200, headers: res.getHeaders(), body: responseBody }
         });
-        return res.status(201).json(responseBody);
+        res.status(200).json(responseBody);
     } catch (error) {
         responseBody = { error: true, message: "error", data: error };
 
         await logEntry({
-            message: "İşlem sırasında hata oluştu. Müşteri düzenlenemedi.",
+            message: "İşlem sırasında hata oluştu. Çalışan gösterilemedi.",
             level: "error",
             employee,
             request: requestDetails,
@@ -69,4 +64,4 @@ const editCustomer = async (req, res) => {
     }
 };
 
-module.exports = editCustomer;
+module.exports = getEmployee;
