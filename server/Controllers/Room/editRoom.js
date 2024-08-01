@@ -1,68 +1,39 @@
 const Room = require("../../models/Room");
 const validator = require("./validator");
-const logEntry = require("../Middleware/logger");
+const Template = require("../Template");
 
-const editRoom = async (req, res) => {
-    const { user } = req;
-    const employee = user ? user._id : "669e5fe5af7fd9bf9444cce4";
-    const requestDetails = { method: req.method, url: req.originalUrl, headers: req.headers, body: req.body };
-    let responseBody;
-
+const operation = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { roomNumber, roomName, price, description, adults, childs, features, note } = req.body;
-        const validators = [
-            validator.room(id),
-            validator.employee(employee),
-            validator.roomNumber(roomNumber, id),
-            validator.roomName(roomName),
-            validator.price(price),
-            validator.description(description),
-            validator.adults(adults),
-            validator.features(features),
-            validator.childs(childs)
-        ];
-        const errors = await Promise.all(validators);
-        const errorsArray = errors.filter(Boolean);
-
-        if (errorsArray.length > 0) {
-            responseBody = { error: true, message: "errors", data: errorsArray };
-
-            await logEntry({
-                message: "Oda düzenlenirken hatalı veri girildi ve işlem yapılamadı.",
-                employee,
-                request: requestDetails,
-                response: { status: 400, headers: res.getHeaders(), body: responseBody }
-            });
-            return res.status(400).json(responseBody);
-        }
+        const { roomNumber, roomName, price, description, adults, childs, note} = req.body;
         const newRoom = await Room.findByIdAndUpdate(
-            id,
-            { roomNumber, note: note || "", roomType: { roomName, price, adults, childs, features, note: note || "" } },
+            req.params.id,
+            { roomNumber, note: note || "", roomType: { roomName, price, adults, childs, note: note || "" } },
             { new: true }
         );
-        responseBody = { error: false, data: newRoom, message: "success" };
-
-        await logEntry({
-            message: "Bir oda düzenlendi.",
-            employee,
-            request: requestDetails,
-            response: { status: 201, headers: res.getHeaders(), body: responseBody }
-        });
-        return res.status(201).json(responseBody);
-    } catch (error) {
-        responseBody = { error: true, message: "error", data: error };
-
-        await logEntry({
-            message: "İşlem sırasında hata oluştu. Oda düzenlenemedi.",
-            level: "error",
-            employee,
-            request: requestDetails,
-            response: { status: 500, headers: res.getHeaders(), body: responseBody },
-            error
-        });
-        return res.status(500).json(responseBody);
+        return { error: false, body: { error: false, data: newRoom, message: "success" } }
+    } catch (err) {
+        return { error: err }
     }
-};
+}
+
+const validatorFunctions = (req, res, employee) => {
+    const { roomNumber, roomName, price, description, adults, childs, note} = req.body;
+    return [
+        validator.room(req.params.id),
+        validator.employee(employee),
+        validator.roomNumber(roomNumber, req.params.id),
+        validator.roomName(roomName),
+        validator.price(price),
+        validator.description(description),
+        validator.adults(adults),
+        validator.childs(childs)
+    ]
+}
+
+const editRoom = Template(operation, validatorFunctions, {
+    validationError: "Oda düzenlenirken hatalı veri girildi ve işlem yapılamadı.",
+    serverError: "İşlem sırasında hata oluştu. Oda düzenlenemedi.",
+    success: "Oda düzenlendi."
+})
 
 module.exports = editRoom;

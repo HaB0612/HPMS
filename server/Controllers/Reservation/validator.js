@@ -86,6 +86,7 @@ const reservationValidator = {
           }
         ]
       });
+      //KENDİSİNİ GÖRÜYOR
       const selfExist = conflictingReservations.some(item => _.isEqual(item, reservationFromID))
       if (selfExist) conflictingReservations--
       if (conflictingReservations.length > 0) return "Seçilen tarihler başka bir rezervasyon ile çakışıyor.";

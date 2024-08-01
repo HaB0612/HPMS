@@ -1,4 +1,31 @@
 const Customer = require("../../models/Customer");
+const validator = require("../Middleware/validators");
+const Template = require("../Template");
+
+const operation = async (req, res) => {
+    try { 
+        const customer = await Customer.findById(req.params.id);
+
+        return { error: false, body: { error: false, message: "success", data: customer } }
+    } catch (err) {
+        return { error: err }
+    }
+}
+
+const validatorFunctions = (req, res, employee) => {
+    return [validator.employee(employee), validator.checkCustomer(req.params.id)]
+}
+
+const getCustomer = Template(operation, validatorFunctions, {
+    validationError: "Müşteri gösterilirken hatalı veri girildi ve işlem yapılamadı.",
+    serverError: "İşlem sırasında hata oluştu. Müşteri gösterilemedi.",
+    success: "Müşteri gösterildi."
+})
+
+module.exports = getCustomer;/*
+
+
+const Customer = require("../../models/Customer");
 const Employee = require("../../models/Employee");
 const validator = require("../Middleware/validators");
 const logEntry = require("../Middleware/logger");
@@ -61,4 +88,4 @@ const getCustomer = async (req, res) => {
     }
 };
 
-module.exports = getCustomer;
+module.exports = getCustomer;*/

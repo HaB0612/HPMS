@@ -1,5 +1,4 @@
 const Customer = require("../../models/Customer");
-const Feature = require("../../models/Feature");
 const Reservation = require("../../models/Reservation");
 const Room = require("../../models/Room");
 const Employee = require("../../models/Employee");
@@ -7,7 +6,6 @@ const mongoose = require("mongoose");
 const dateRegex = /^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/;
 const phoneRegex = /^\+?[1-9]\d{1,14}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const currenciesData = require("../../models/currencies.json");
 
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
@@ -20,7 +18,10 @@ const validateField = async (value, condition, errorMessage) => {
 };
 
 const validators = {
-  employee: async (employee) => validateField(employee, async v => !v || !isValidObjectId(v) || !await Employee.findById(v), "Lütfen geçerli bir kimlikle giriş yapın."),
+  checkCustomer: async (customerID) => { if (!customerID || !isValidObjectId(customerID) || !(await Customer.findById(customerID))) return "Lütfen geçerli bir müşteri seçin."; return false },
+  employee: async (employeeID) => { if (!employeeID || !isValidObjectId(employeeID) || !(await Employee.findById(employeeID))) return "Lütfen geçerli bir kimlikle giriş yapın."; return false },
+  checkEmployee: async (employeeID) => { if (!employeeID || !isValidObjectId(employeeID) || !(await Employee.findById(employeeID))) return "Lütfen geçerli bir çalışan seçin."; return false; },
+  permEmployee: async (employee) => { if (employee !== process.env.MASTEREMPLOYEEID) { return "Çalışan oluşturma yetkiniz yok." } else { return false } },
   name: async (name) => validateField(name, v => !v, "Lütfen bir isim girin."),
   tckn: async (tckn) => validateField(tckn, v => !v, "Lütfen bir TCKN veya Pasaport No girin."),
   phone: async (phone) => validateField(phone, v => !v || !phoneRegex.test(v), "Lütfen geçerli bir telefon numarası girin."),

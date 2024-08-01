@@ -6,7 +6,6 @@ const roomTypeSchema = new mongoose.Schema({
   price: { type: Number },
   adults: { type: Number },
   childs: { type: Number },
-  features: [{ type: Schema.Types.ObjectId, ref: "Feature", required: false }],
   note: { type: String, required: false },
 });
 

@@ -15,29 +15,4 @@ const reservationSchema = new mongoose.Schema({
   isPaid: { type: Boolean, required: false, default: false },
 });
 
-reservationSchema.statics.convertCurrency = async function (
-  currencyToConvert,
-  currentCurrency,
-  amount
-) {
-  try {
-    const response = await axios.get(
-      "https://api.exchangerate-api.com/v4/latest/USD"
-    );
-    const exchangeRates = response.data.rates;
-
-    if (!exchangeRates[currencyToConvert] || !exchangeRates[currentCurrency]) {
-      return `Invalid currency: ${currencyToConvert} or ${currentCurrency}`;
-    }
-
-    const convertedAmount =
-      (amount * exchangeRates[currentCurrency]) /
-      exchangeRates[currencyToConvert];
-
-    return convertedAmount.toFixed(2);
-  } catch (error) {
-    console.error(error);
-  }
-};
-
 module.exports = mongoose.model("Reservation", reservationSchema);

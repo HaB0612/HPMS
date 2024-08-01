@@ -1,5 +1,4 @@
 const Customer = require("../../models/Customer");
-const Feature = require("../../models/Feature");
 const Employee = require("../../models/Employee");
 const Room = require("../../models/Room");
 const mongoose = require("mongoose");
@@ -45,19 +44,7 @@ const roomValidator = {
   childs: async (childs) => {
     if (!childs || !Number.isInteger(childs)) return "Lütfen çocuk sayısını girin.";
     return false;
-  },
-  features: async (features) => {
-    if (!features || features.length == 0) return false;
-    if (!Array.isArray(features)) return "Lütfen geçerli bir oda özelliği seçin.";
-    let errorCount = 0;
-    for (let featureID of features) {
-      if (!isValidObjectId(featureID) || !(await Customer.findById(featureID))) {
-        errorCount++;
-        continue;
-      }
-    }
-    return errorCount > 0 ? "Lütfen geçerli bir özellik girin." : false;
-  },
+  }
 };
 
 module.exports = roomValidator;
